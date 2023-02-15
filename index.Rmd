@@ -1,0 +1,35 @@
+---
+title: "index.Rmd"
+output: html_document
+date: "2023-02-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(tidyverse)
+library(spotifyr)
+library(ggplot2)
+
+# loading the playlist
+leo_playlist <- get_playlist_audio_features("", "5ASx85eUYUG7QmYpiJVI4p")
+leo_playlist
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+ggplot(leo_playlist, aes(x = track.duration_ms, y = energy)) + geom_point() + geom_smooth()
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
