@@ -18,18 +18,80 @@ When you click the **Knit** button a document will be generated that includes bo
 library(tidyverse)
 library(spotifyr)
 library(ggplot2)
+```
 
-# loading the playlist
+```{r}
+# loading playlists
 leo_playlist <- get_playlist_audio_features("", "5ASx85eUYUG7QmYpiJVI4p")
-leo_playlist
+japan_playlist <- get_playlist_audio_features("", "2O5JW5bl2P4JVZxImRUOG3")
+korea_playlist <- get_playlist_audio_features("", "25LukUx2r4J5WScqkEcgCo")
+```
+
+```{r}
+# rename the playlists
+leo_playlist$playlist_name <- "Leo's playlist" 
+japan_playlist$playlist_name <- "Japanese love songs"
+korea_playlist$playlist_name <- "Korean love songs"
+```
+
+```{r}
+# appending datasets into one
+temp = rbind(leo_playlist, japan_playlist)
+songs = rbind(temp, korea_playlist)
+# shows the dimension of the whole dataset
+dim(songs) # output: 247x61
+```
+
+```{r}
+# let's inspect the names of columns
+colnames(songs)
+
+# Useful columns are 
+# playlist_name, danceability, energy, key, loudness, mode, speechiness,
+# acousticness, instrumentalness, liveness, valence, tempo,
+# track.popularity, key_name, mode_name, key_mode, track.duration_ms
+```
+
+```{r}
+dim(leo_playlist)
 ```
 
 ## Including Plots
 
+```{r}
+# Let's see the distribution of the duration of songs in each playlist
+songs <- songs %>%
+  mutate(track.duration_min = track.duration_ms / (1000 * 60))
+ggplot(songs, aes(track.duration_min)) + geom_histogram() + facet_wrap(~ playlist_name)
+```
+
+```{r}
+# let's make donut charts of key_mode
+library(data.table)
+donut_df <- songs |> count(playlist_name, key_name, sort = TRUE)
+
+#setDT converts to a data.table and then you calculate the fraction of each expr
+#grouping by the playlist_name
+setDT(donut_df)[, frac := n / sum(n), by=playlist_name]
+tabulated <- donut_df[, .N, by = .(playlist_name, key_name, n)]
+
+# plot
+ggplot(tabulated, aes(x=2, y=n, fill=key_name)) +
+  geom_bar(position = 'fill', stat = 'identity')  +
+  facet_grid(~ playlist_name) + 
+  xlim(0.5, 2.5) +
+  coord_polar(theta = 'y') + 
+  labs(x=NULL, y=NULL)
+
+ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
+  geom_bar(stat="identity")+facet_grid(~ playlist_name)
+```
+
 You can also embed plots, for example:
 
 ```{r}
-ggplot(leo_playlist, aes(x = track.duration_ms, y = energy)) + geom_point() + geom_smooth()
+# let's make a multivariate plot
+ggplot(songs, aes(valence, tempo, color = key_name)) + geom_point() + facet_wrap(~ playlist_name) 
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
