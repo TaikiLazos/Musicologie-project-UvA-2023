@@ -11,3 +11,18 @@ It is expected that the playlist will have similarities with other J-pop playlis
 The song that represents the playlist the best would be the 1999-Hit-song "First love" by Hikaru Utada. The song has Utada's sweet vocals backed with sad instumentals and melancholic lyrics, thereby fitting the main theme of the playlist. 
 
 In contrast, the R&B/Soul song, "Nothing even Matters" by Mrs. Lauryn Hill and D'angelo would be the song least fitting from the overall vibe of the playlist. The song having jazzy instumental with warm vocals, would be an example of an atypical song in the playlist.
+
+## Week 7 HW
+For this week I made few visualiation of my corpus. My central topic of this project is to see who is more romantic according to my brother Korean or Japanese?
+
+### Plot 1
+![Duration of songs](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/distribution%20of%20duration.png)
+
+### Plot 2
+![Keys (Bar)](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/keys%20in%20bar%20plot.png)
+
+### Plot 3
+![Keys (Donut)](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/keys%20in%20donut%20chart.png)
+
+### Plot 4
+![Multivariate](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/multivariate%20plot.png)
