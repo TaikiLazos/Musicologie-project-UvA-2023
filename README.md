@@ -16,17 +16,21 @@ In contrast, the R&B/Soul song, "Nothing even Matters" by Mrs. Lauryn Hill and D
 For this week I made few visualiation of my corpus. My central topic of this project is to see who is more romantic according to my brother Korean or Japanese?
 
 ### Plot 1 
-The plot below shows histograms of song duation in minutes. There is no difference in the length of songs between these playlists. 
+The plot below shows histograms of song duation in minutes. There is no difference in the length of songs between these playlists.
+
 ![Duration of songs](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/distribution%20of%20duration.png)
 
 ### Plot 2
 I made a bar plot to show the distribution of keys in each playlist.
+
 ![Keys (Bar)](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/keys%20in%20bar%20plot.png)
 
 ### Plot 3
 This one is a donut version.
+
 ![Keys (Donut)](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/keys%20in%20donut%20chart.png)
 
 ### Plot 4
 This one is interesting. Leo's playlist and Korean playlist share some similarities in some places. This indicates that Koreans are more romantic than Japanese according to my brother.
+
 ![Multivariate](https://github.com/TaikiLazos/Musicologie-project-UvA-2023/blob/main/plots/multivariate%20plot.png)
