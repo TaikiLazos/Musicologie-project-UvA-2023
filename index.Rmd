@@ -53,7 +53,7 @@ colnames(songs)
 ```
 
 ```{r}
-dim(leo_playlist)
+leo_playlist
 ```
 
 ## Including Plots
