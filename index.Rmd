@@ -1,7 +1,10 @@
 ---
-title: "index.Rmd"
-output: html_document
+title: "Taiki's Portfolio for Computational Musicology 2023"
+output: 
+  flexdashboard::flex_dashboard:
+  storyboard: true
 date: "2023-02-15"
+author: "Taiki Papandreou"
 ---
 
 ```{r setup, include=FALSE}
