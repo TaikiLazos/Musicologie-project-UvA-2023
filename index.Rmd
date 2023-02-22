@@ -1,65 +1,75 @@
 ---
 title: "Taiki's Portfolio for Computational Musicology 2023"
+author: "Taiki Papandreou"
+date: "2023 Feb-Mar"
 output: 
   flexdashboard::flex_dashboard:
   storyboard: true
-date: "2023-02-15"
-author: "Taiki Papandreou"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
+library(flexdashboard)
 library(tidyverse)
 library(spotifyr)
 library(ggplot2)
+library(plotly)
+library(compmus)
 ```
 
-```{r}
-# loading playlists
+Page 1 {.storyboard}
+==================================
+
+
+### Welcome to my portfolio!
+In this portfolio you will find out who is more romantic Korean or Japanese?
+
+```{r, include=FALSE}
+# Loading spotify playlists
 leo_playlist <- get_playlist_audio_features("", "5ASx85eUYUG7QmYpiJVI4p")
 japan_playlist <- get_playlist_audio_features("", "2O5JW5bl2P4JVZxImRUOG3")
 korea_playlist <- get_playlist_audio_features("", "25LukUx2r4J5WScqkEcgCo")
-```
 
-```{r}
-# rename the playlists
+# Rename the playlists for my convinience
 leo_playlist$playlist_name <- "Leo's playlist" 
 japan_playlist$playlist_name <- "Japanese love songs"
 korea_playlist$playlist_name <- "Korean love songs"
-```
 
-```{r}
 # appending datasets into one
 temp = rbind(leo_playlist, japan_playlist)
 songs = rbind(temp, korea_playlist)
 # shows the dimension of the whole dataset
-dim(songs) # output: 247x61
+# dim(songs) # output: 247x61
+
+wood <-
+  get_tidy_audio_analysis("6ISfsK0fMMSx6mQ8TbnKhM") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
 ```
+
 
 ```{r}
-# let's inspect the names of columns
-colnames(songs)
-
-# Useful columns are 
-# playlist_name, danceability, energy, key, loudness, mode, speechiness,
-# acousticness, instrumentalness, liveness, valence, tempo,
-# track.popularity, key_name, mode_name, key_mode, track.duration_ms
+wood |>
+  mutate(pitches = map(pitches, compmus_normalise, "manhattan")) |>
+  compmus_gather_chroma() |> 
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = pitch_class,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c()
 ```
 
-```{r}
-leo_playlist
-```
+Page 2 {.storyboard}
+===========================
 
-## Including Plots
+### Chart B
 
 ```{r}
 # Let's see the distribution of the duration of songs in each playlist
@@ -67,6 +77,8 @@ songs <- songs %>%
   mutate(track.duration_min = track.duration_ms / (1000 * 60))
 ggplot(songs, aes(track.duration_min)) + geom_histogram() + facet_wrap(~ playlist_name) + ggtitle("The distribution of song length in minutes") + labs( x = "Minutes")
 ```
+
+### Chart C
 
 ```{r}
 # let's make donut charts of key_mode
@@ -92,7 +104,10 @@ ggplot(tabulated, aes(x=2, y=n, fill=key_name)) +
     axis.text.y=element_blank(),
     axis.ticks.y=element_blank()
     ) + ggtitle("Distribution of keys in playlist represented in donut chart")
+```
 
+### Chart D
+```{r}
 ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
   geom_bar(stat="identity")+facet_grid(~ playlist_name) + theme(
     axis.title.x=element_blank(),
@@ -100,15 +115,3 @@ ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
     axis.ticks.x=element_blank()) + labs(y = "Count", x = "Key") + ggtitle("Distribution of keys in playlist represented in bar chart")
 ```
 
-You can also embed plots, for example:
-
-```{r}
-# let's make a multivariate plot
-ggplot(songs, aes(valence, tempo, color = key_name)) + geom_point() + facet_wrap(~ playlist_name) + ggtitle("Songs represented by their tempo and valence")
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-```{r}
-remotes::install_github('jaburgoyne/compmus')
-```
