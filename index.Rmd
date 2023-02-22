@@ -62,7 +62,7 @@ dim(leo_playlist)
 # Let's see the distribution of the duration of songs in each playlist
 songs <- songs %>%
   mutate(track.duration_min = track.duration_ms / (1000 * 60))
-ggplot(songs, aes(track.duration_min)) + geom_histogram() + facet_wrap(~ playlist_name)
+ggplot(songs, aes(track.duration_min)) + geom_histogram() + facet_wrap(~ playlist_name) + ggtitle("The distribution of song length in minutes") + labs( x = "Minutes")
 ```
 
 ```{r}
@@ -81,17 +81,27 @@ ggplot(tabulated, aes(x=2, y=n, fill=key_name)) +
   facet_grid(~ playlist_name) + 
   xlim(0.5, 2.5) +
   coord_polar(theta = 'y') + 
-  labs(x=NULL, y=NULL)
+  labs(x=NULL, y=NULL) + theme(
+    axis.title.x=element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank(),
+    axis.title.y=element_blank(),
+    axis.text.y=element_blank(),
+    axis.ticks.y=element_blank()
+    ) + ggtitle("Distribution of keys in playlist represented in donut chart")
 
 ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
-  geom_bar(stat="identity")+facet_grid(~ playlist_name)
+  geom_bar(stat="identity")+facet_grid(~ playlist_name) + theme(
+    axis.title.x=element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank()) + labs(y = "Count", x = "Key") + ggtitle("Distribution of keys in playlist represented in bar chart")
 ```
 
 You can also embed plots, for example:
 
 ```{r}
 # let's make a multivariate plot
-ggplot(songs, aes(valence, tempo, color = key_name)) + geom_point() + facet_wrap(~ playlist_name) 
+ggplot(songs, aes(valence, tempo, color = key_name)) + geom_point() + facet_wrap(~ playlist_name) + ggtitle("Songs represented by their tempo and valence")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
