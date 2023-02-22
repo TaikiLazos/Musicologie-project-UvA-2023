@@ -13,6 +13,7 @@ library(tidyverse)
 library(spotifyr)
 library(ggplot2)
 library(plotly)
+library(compmus)
 ```
 
 Page 1
@@ -35,7 +36,11 @@ leo_playlist$playlist_name <- "Leo's playlist"
 japan_playlist$playlist_name <- "Japanese love songs"
 korea_playlist$playlist_name <- "Korean love songs"
 
-
+# appending datasets into one
+temp = rbind(leo_playlist, japan_playlist)
+songs = rbind(temp, korea_playlist)
+# shows the dimension of the whole dataset
+# dim(songs) # output: 247x61
 
 ```
 
