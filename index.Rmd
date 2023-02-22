@@ -1,7 +1,7 @@
 ---
 title: "Taiki's Portfolio for Computational Musicology 2023"
 author: "Taiki Papandreou"
-date: "2023 Feb-Mar"
+date: "2023"
 output: 
   flexdashboard::flex_dashboard:
   storyboard: true
@@ -16,11 +16,10 @@ library(plotly)
 library(compmus)
 ```
 
-Page 1 {.storyboard}
-==================================
-
+# Beginning of the story {.storyboard}
 
 ### Welcome to my portfolio!
+
 In this portfolio you will find out who is more romantic Korean or Japanese?
 
 ```{r, include=FALSE}
@@ -47,10 +46,9 @@ wood <-
   select(start, duration, pitches)
 ```
 
-
 ```{r}
 wood |>
-  mutate(pitches = map(pitches, compmus_normalise, "manhattan")) |>
+  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
   compmus_gather_chroma() |> 
   ggplot(
     aes(
@@ -65,9 +63,6 @@ wood |>
   theme_minimal() +
   scale_fill_viridis_c()
 ```
-
-Page 2 {.storyboard}
-===========================
 
 ### Chart B
 
@@ -107,6 +102,7 @@ ggplot(tabulated, aes(x=2, y=n, fill=key_name)) +
 ```
 
 ### Chart D
+
 ```{r}
 ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
   geom_bar(stat="identity")+facet_grid(~ playlist_name) + theme(
@@ -114,4 +110,3 @@ ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
     axis.text.x=element_blank(),
     axis.ticks.x=element_blank()) + labs(y = "Count", x = "Key") + ggtitle("Distribution of keys in playlist represented in bar chart")
 ```
-
