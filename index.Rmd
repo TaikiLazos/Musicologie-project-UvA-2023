@@ -16,37 +16,156 @@ library(plotly)
 library(compmus)
 ```
 
-# Beginning of the story {.storyboard}
+# Beginning of the story {.storyboard data-icon="ion-ios-home"}
 
 ### Welcome to my portfolio!
 
-In this portfolio you will find out who is more romantic Korean or Japanese?
+<font size="6"> What is this about?</font>
+
+Music has always been an important medium for expressing emotions, especially when it comes to matters of the heart. Romantic songs, in particular, have a way of capturing the essence of love and heartbreak in a way that resonates with people across cultures.
+
+In this project, we aim to explore the question of who is more romantic - Japanese or Korean artists? To do this, we will be analyzing a playlist of 52 sad love songs compiled by an avid Spotify user and self-proclaimed romantic, my brother.
+
+Using R and various visualization tools, we will delve into the playlist to gain insights into the different themes and styles of music represented by the Japanese and Korean artists. Of course, being romantic is a subjective concept, but we will be using my brother's taste in music as a benchmark for our analysis.
+
+Ultimately, our goal is to uncover any patterns or trends in the playlist that might shed light on the question of which culture produces more romantic music. So let's put on our headphones, dive into the playlist, and see what the data has to say!
+
+<font size="6"> About My Corpus</font>
+
+There are three playlists chosen for my project in order to answer my question.
+
+<font size="4"> My Brother's playlist</font>
+
+The playlist is named after a Japanese word, "切ない系" (Setsunai-kei) meaning "melancholic" or "wistful" in English. The 57-song playlist is a collection of songs that convey bittersweet sentiments through sweet vocals assisted by soft and warm instrumentals. The playlist is primarily composed of songs sung in Japanese or Korean but also includes English songs. Despite the difference in language amongst the songs included, they share the similarity in the melodies of the songs, often having sweet and charming rings. The vocals of the songs are also one of the main elements that make the playlist truly melancholic, as if the artists are whispering to the heart of the listener.
+
+<font size="4">Top 50 South Korea & Top 50 Japan</font>
+
+To determine which culture produces more romantic music, I have decided to use my brother's playlist of 52 sad love songs from Korea and Japan as a standard for comparison. In order to assess the relative romanticism of Korean and Japanese music, I will be comparing my brother's playlist with the Top 50 playlists from each country.
+
+By examining the degree of overlap between my brother's playlist and the Top 50 playlists from Korea and Japan, I hope to gain insights into which country's music is more aligned with my brother's taste in romantic music. While it's important to note that my brother's playlist is not necessarily representative of all Korean and Japanese romantic music, it does provide a useful benchmark for comparison.
+
+Of course, romanticism is a subjective concept and there may be other factors beyond just cultural origin that influence my brother's selection of songs. Nonetheless, I believe that this approach will provide a useful starting point for exploring the question of which country's music is more romantic.
+
+------------------------------------------------------------------------
+
+```{r picture, echo = F,  out.width = '100%'}
+knitr::include_graphics("pics/intro_pic_sub.png")
+"A series of pictures or a Spotify API comes in this column."
+```
 
 ```{r, include=FALSE}
 # Loading spotify playlists
 leo_playlist <- get_playlist_audio_features("", "5ASx85eUYUG7QmYpiJVI4p")
-japan_playlist <- get_playlist_audio_features("", "2O5JW5bl2P4JVZxImRUOG3")
-korea_playlist <- get_playlist_audio_features("", "25LukUx2r4J5WScqkEcgCo")
+japan_playlist <- get_playlist_audio_features("", "37i9dQZEVXbKXQ4mDTEBXq")
+korea_playlist <- get_playlist_audio_features("", "37i9dQZEVXbNxXF4SkHj9F")
 
-# Rename the playlists for my convinience
-leo_playlist$playlist_name <- "Leo's playlist" 
-japan_playlist$playlist_name <- "Japanese love songs"
-korea_playlist$playlist_name <- "Korean love songs"
+# Rename the playlists for my convenience
+leo_playlist$playlist_name <- "My Brother's playlist" 
+japan_playlist$playlist_name <- "Top 50 Japan"
+korea_playlist$playlist_name <- "Top 50 South Korea"
 
-# appending datasets into one
+# appending dataset into one
 temp = rbind(leo_playlist, japan_playlist)
 songs = rbind(temp, korea_playlist)
 # shows the dimension of the whole dataset
 # dim(songs) # output: 247x61
+```
 
+# Visual analysis of my corpus {.storyboard data-icon="fa-signal"}
+
+
+### Song length in Bar plot
+
+```{r}
+# Let's see the distribution of the duration of songs in each playlist
+songs <- songs %>%
+  mutate(track.duration_min = track.duration_ms / (1000 * 60))
+ggplot(songs, aes(track.duration_min)) + geom_histogram() + facet_wrap(~ playlist_name) + ggtitle("The distribution of song length in minutes") + labs( x = "Minutes")
+```
+
+------------------------------------------------------------------------
+
+Upon examining my brother's playlist and the Top 50 playlists from Japan and South Korea, I've noticed that there are some interesting differences in the duration of songs. Specifically, my brother's playlist consists mostly of songs around 4 minutes in length, while the Top 50 playlist from Japan has a peak at 3 minutes and a little over 4 minutes, and the Top 50 playlist from Korea peaks at 3 minutes.
+
+### Keys of Songs
+
+```{r}
+# let's make donut charts of key_mode
+library(data.table)
+donut_df <- songs |> count(playlist_name, key_name, sort = TRUE)
+
+#setDT converts to a data.table and then you calculate the fraction of each expr
+#grouping by the playlist_name
+setDT(donut_df)[, frac := n / sum(n), by=playlist_name]
+tabulated <- donut_df[, .N, by = .(playlist_name, key_name, n)]
+
+# plot FOR DONUT CHART
+# ggplot(tabulated, aes(x=2, y=n, fill=key_name)) +
+#   geom_bar(position = 'fill', stat = 'identity')  +
+#   facet_grid(~ playlist_name) + 
+#   xlim(0.5, 2.5) +
+#   coord_polar(theta = 'y') + 
+#   labs(x=NULL, y=NULL) + theme(
+#     axis.title.x=element_blank(),
+#     axis.text.x=element_blank(),
+#     axis.ticks.x=element_blank(),
+#     axis.title.y=element_blank(),
+#     axis.text.y=element_blank(),
+#     axis.ticks.y=element_blank()
+#     ) + ggtitle("Distribution of keys in playlist represented in donut chart")
+
+# BARPLOT
+ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
+  geom_bar(stat="identity")+facet_grid(~ playlist_name) + theme(
+    axis.title.x=element_blank(),
+    axis.text.x=element_blank(),
+    axis.ticks.x=element_blank()) + labs(y = "Count", x = "Key") + ggtitle("Distribution of keys in playlist represented in bar chart")
+
+```
+
+------------------------------------------------------------------------
+
+As I continue to analyze my brother's playlist and the Top 50 playlists from Japan and South Korea, I've noticed some intriguing differences in the musical keys used by the different artists.
+
+Specifically, my brother's playlist has a notable concentration of songs in the A key. Additionally, he has an equal amount of songs in the C, C#, and D keys. In contrast, the Top 50 playlist from Japan has the highest concentration of songs in the G key, while the Top 50 playlist from Korea mainly features songs in the C and C# keys - which is consistent with the key distribution in my brother's playlist.
+
+While the key of a song may not directly determine its level of romanticism, these observations are an interesting starting point.
+
+### Tempo & Valence
+
+```{r}
+ggplot(songs, aes(x=tempo, y=valence, color=key_name)) + geom_point() +facet_wrap(~ playlist_name) + ggtitle("Tempo and Valence distribution among the playlists")
+```
+
+------------------------------------------------------------------------
+
+As I continue to explore the romantic qualities of music from Japan and South Korea, I've identified two key features from Spotify API that may be particularly relevant: tempo and valence.
+
+When examining my brother's playlist, which he curated as a collection of sad love songs, I noticed a preponderance of songs with lower tempo and valence scores. This aligns with his stated intention for the playlist and suggests that these features may be indicative of romantic music as he perceives it.
+
+In contrast, the Top 50 playlists from Japan and South Korea exhibit a similar distribution of valence scores, centering around 0.50 and 0.75. This may reflect the similarity of popular music trends between the two countries, particularly in the realm of pop music.
+
+However, I did observe a slightly greater prevalence of songs with low tempo and valence scores in the Top 50 playlist from South Korea than in the Top 50 playlist from Japan. Based on this observation, it's possible that South Korean music may be somewhat more romantic than Japanese music. However, it's important to note that this conclusion is based on a limited set of data and further analysis would be needed to confirm it.
+
+### Interactive Chart
+```{r}
+multi <- ggplot(songs, aes(x=tempo, y=valence, color=playlist_name)) + geom_point() + ggtitle("Tempo and Valence distribution among the playlists")
+ggplotly(multi)
+```
+
+------------------------------------------------------------------------
+
+Interactive chart using ggplotly.
+
+### Chromatogram
+
+```{r}
 wood <-
   get_tidy_audio_analysis("6ISfsK0fMMSx6mQ8TbnKhM") |>
   select(segments) |>
   unnest(segments) |>
   select(start, duration, pitches)
-```
 
-```{r}
 wood |>
   mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
   compmus_gather_chroma() |> 
@@ -64,49 +183,22 @@ wood |>
   scale_fill_viridis_c()
 ```
 
-### Chart B
+------------------------------------------------------------------------
 
-```{r}
-# Let's see the distribution of the duration of songs in each playlist
-songs <- songs %>%
-  mutate(track.duration_min = track.duration_ms / (1000 * 60))
-ggplot(songs, aes(track.duration_min)) + geom_histogram() + facet_wrap(~ playlist_name) + ggtitle("The distribution of song length in minutes") + labs( x = "Minutes")
-```
+Here is a chromatogram from the werkcollege.
 
-### Chart C
+# End point {.storyboard data-icon="ion-music-note"}
 
-```{r}
-# let's make donut charts of key_mode
-library(data.table)
-donut_df <- songs |> count(playlist_name, key_name, sort = TRUE)
+### What did I find?
+Through our analysis of my brother's playlist and the Top 50 playlists from Japan and South Korea, we've discovered some interesting differences in the musical features that are commonly associated with romantic music.
 
-#setDT converts to a data.table and then you calculate the fraction of each expr
-#grouping by the playlist_name
-setDT(donut_df)[, frac := n / sum(n), by=playlist_name]
-tabulated <- donut_df[, .N, by = .(playlist_name, key_name, n)]
+We found that the Top 50 playlists from both countries generally exhibited a similar distribution of tempo and valence scores, reflecting similarities in pop music trends. However, the playlists diverged in other areas: the Top 50 playlist from Japan featured a higher concentration of songs in the G key and a wider range of song lengths, while the Top 50 playlist from South Korea had many songs in C and C# keys and tended to peak at 3 minutes in length.
 
-# plot
-ggplot(tabulated, aes(x=2, y=n, fill=key_name)) +
-  geom_bar(position = 'fill', stat = 'identity')  +
-  facet_grid(~ playlist_name) + 
-  xlim(0.5, 2.5) +
-  coord_polar(theta = 'y') + 
-  labs(x=NULL, y=NULL) + theme(
-    axis.title.x=element_blank(),
-    axis.text.x=element_blank(),
-    axis.ticks.x=element_blank(),
-    axis.title.y=element_blank(),
-    axis.text.y=element_blank(),
-    axis.ticks.y=element_blank()
-    ) + ggtitle("Distribution of keys in playlist represented in donut chart")
-```
+Based on our analysis, we observed that South Korean music appears to more closely resemble my brother's playlist than Japanese music. While this is a somewhat subjective conclusion, given that it is based on my brother's personal tastes and preferences, it suggests that Koreans may be more romantic than the Japanese in his estimation.
 
-### Chart D
+Overall, these findings offer insights into the cultural differences in romantic music between Japan and South Korea, and may be useful for those interested in exploring these themes further or curating playlists in this genre. However, it's important to note that our conclusions are based on a relatively small sample size, and further analysis would be needed to confirm these trends.
 
-```{r}
-ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
-  geom_bar(stat="identity")+facet_grid(~ playlist_name) + theme(
-    axis.title.x=element_blank(),
-    axis.text.x=element_blank(),
-    axis.ticks.x=element_blank()) + labs(y = "Count", x = "Key") + ggtitle("Distribution of keys in playlist represented in bar chart")
-```
+### Future Improvements
+- Find better playlists. The results were much better when I picked romantic song playlists of South Korea and Japan instead of top 50. The problem is that they were not curated/created by Spotify.
+
+- Use/explore more features and maybe I can calculate similarities using KNN?
