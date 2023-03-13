@@ -1,11 +1,19 @@
 ---
-title: "Taiki's Portfolio for Computational Musicology 2023"
+title: "Bitterness in love music (K-pop vs J-pop)"
 author: "Taiki Papandreou"
 date: "2023"
 output: 
   flexdashboard::flex_dashboard:
-  storyboard: true
+    storyboard: true
+    theme: cosmo
+    self_contained: false
 ---
+
+```{css}
+.chart-wrapper .chart-stage {
+    overflow-y: auto;
+}
+```
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
@@ -14,6 +22,8 @@ library(spotifyr)
 library(ggplot2)
 library(plotly)
 library(compmus)
+library(cowplot)
+library(ggpubr)
 ```
 
 # Beginning of the story {.storyboard data-icon="ion-ios-home"}
@@ -29,6 +39,14 @@ In this project, we aim to explore the question of who is more romantic - Japane
 Using R and various visualization tools, we will delve into the playlist to gain insights into the different themes and styles of music represented by the Japanese and Korean artists. Of course, being romantic is a subjective concept, but we will be using my brother's taste in music as a benchmark for our analysis.
 
 Ultimately, our goal is to uncover any patterns or trends in the playlist that might shed light on the question of which culture produces more romantic music. So let's put on our headphones, dive into the playlist, and see what the data has to say!
+
+------------------------------------------------------------------------
+
+```{r picture, echo = F, fig.cap = "DALL·E 2 generating input 'asian melancholic songs thatgive you sad feeling'", out.width = '100%', out.height = '100%'}
+knitr::include_graphics("pics/intro_photo.png")
+```
+
+### Corpus Description
 
 <font size="6"> About My Corpus</font>
 
@@ -48,10 +66,11 @@ Of course, romanticism is a subjective concept and there may be other factors be
 
 ------------------------------------------------------------------------
 
-```{r picture, echo = F,  out.width = '100%'}
-knitr::include_graphics("pics/intro_pic_sub.png")
-"A series of pictures or a Spotify API comes in this column."
-```
+<iframe src="https://open.spotify.com/playlist/5ASx85eUYUG7QmYpiJVI4p" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+
+### What makes a song romantic and sad?
+
+Explain in academical term what we consider as our target songs.
 
 ```{r, include=FALSE}
 # Loading spotify playlists
@@ -72,7 +91,6 @@ songs = rbind(temp, korea_playlist)
 ```
 
 # Visual analysis of my corpus {.storyboard data-icon="fa-signal"}
-
 
 ### Song length in Bar plot
 
@@ -134,7 +152,8 @@ While the key of a song may not directly determine its level of romanticism, the
 ### Tempo & Valence
 
 ```{r}
-ggplot(songs, aes(x=tempo, y=valence, color=key_name)) + geom_point() +facet_wrap(~ playlist_name) + ggtitle("Tempo and Valence distribution among the playlists")
+multi <- ggplot(songs, aes(x=tempo, y=valence, color=playlist_name)) + geom_point() + ggtitle("Tempo and Valence distribution among the playlists")
+ggplotly(multi)
 ```
 
 ------------------------------------------------------------------------
@@ -147,26 +166,18 @@ In contrast, the Top 50 playlists from Japan and South Korea exhibit a similar d
 
 However, I did observe a slightly greater prevalence of songs with low tempo and valence scores in the Top 50 playlist from South Korea than in the Top 50 playlist from Japan. Based on this observation, it's possible that South Korean music may be somewhat more romantic than Japanese music. However, it's important to note that this conclusion is based on a limited set of data and further analysis would be needed to confirm it.
 
-### Interactive Chart
-```{r}
-multi <- ggplot(songs, aes(x=tempo, y=valence, color=playlist_name)) + geom_point() + ggtitle("Tempo and Valence distribution among the playlists")
-ggplotly(multi)
-```
-
-------------------------------------------------------------------------
-
-Interactive chart using ggplotly.
-
-### Chromatogram
+### Chromagram
 
 ```{r}
-wood <-
-  get_tidy_audio_analysis("6ISfsK0fMMSx6mQ8TbnKhM") |>
+day6 <-
+  get_tidy_audio_analysis("322t99AIkTbD4lew9tvdgs") |>
   select(segments) |>
   unnest(segments) |>
   select(start, duration, pitches)
+```
 
-wood |>
+```{r}
+day6 |>
   mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
   compmus_gather_chroma() |> 
   ggplot(
@@ -178,18 +189,221 @@ wood |>
     )
   ) +
   geom_tile() +
-  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  geom_vline(xintercept = 55, color = "red") +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude", title = "All Alone - DAY6") +
   theme_minimal() +
   scale_fill_viridis_c()
 ```
 
 ------------------------------------------------------------------------
 
-Here is a chromatogram from the werkcollege.
+We are analyzing the song "All Alone" by DAY6 using the function get_tidy_audio_analysis(). The chromagram we're working with has been normalized and we're using the Euclidean distance measure. A chromagram in computational musicology is a visual representation of the distribution of energy across different musical pitches in an audio signal. You can thus see which key is prevalent in each time frame. You can see that in the beginning of the song, strong keys shift continuously beginning from C, F3, B, A and then D. After 53 second time mark A key shows to be the most important key of the song.
+
+TIP: Implement two more songs. Explain more on the differences between different distance measures.
+
+### Ceptogram
+
+```{r}
+zakapa <-
+  get_tidy_audio_analysis("5dsDcqCBVP9cz6Ra4iQRMd") |> # Change URI.
+  compmus_align(bars, segments) |>                     # Change `bars`
+  select(bars) |>                                      #   in all three
+  unnest(bars) |>                                      #   of these lines.
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+        compmus_summarise, timbre,
+        method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  )
+```
+
+```{r}
+zakapa |>
+  compmus_gather_timbre() |>
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = basis,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude", title = "As I Wished - Urban Zakapa") +
+  scale_fill_viridis_c() +                              
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+A cepstrogram is a visual representation of the cepstral coefficients of an audio signal. Cepstral analysis is a technique used in signal processing and acoustics to analyze the spectral content of a signal by taking the inverse Fourier transform of its logarithm. In a cepstrogram, the cepstral coefficients are displayed over time, It can reveal patterns and structures in the spectral content of the signal. I made a ceptogram of the song 'As I Wished' by Urban Zakapa. I used Euclidean for normalization and root mean square as a summary statistic. We can see that lower c are appear to be more dominant. (I need a better explanation here because I am not so sure what this represents.)
+
+### Self Similarity Matrix
+
+```{r}
+bzt <-
+  get_tidy_audio_analysis("1uZ5Ulb2qfle3HbqB12vNQ") |>
+  compmus_align(bars, segments) |>
+  select(bars) |>
+  unnest(bars) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "acentre", norm = "manhattan"
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  )
+bind_rows(
+  bzt |> 
+    compmus_self_similarity(pitches, "aitchison") |> 
+    mutate(d = d / max(d), type = "Chroma"),
+  bzt |> 
+    compmus_self_similarity(timbre, "euclidean") |> 
+    mutate(d = d / max(d), type = "Timbre")
+) |>
+  mutate() |> 
+  ggplot(
+    aes(
+      x = xstart + xduration / 2,
+      width = xduration,
+      y = ystart + yduration / 2,
+      height = yduration,
+      fill = d
+    )
+  ) +
+  geom_tile() +
+  coord_fixed() +
+  facet_wrap(~type) +
+  scale_fill_viridis_c(option = "E", guide = "none") +
+  theme_classic() + 
+  labs(x = "", y = "")
+```
+
+------------------------------------------------------------------------
+
+The two self-similarity matrices show chroma- and timbre-based self-similarity of the song 'Here I Am Again' by Yerin Baek. I was sick and I don't really know what to say. I will work on this explanation by 15th of March. But I can say that since there are no diagonal lines there are not much similar time components within the song. The song had different type of melody throughout the song but I think the overall vibe was similar so that is so strange. I also see that there is not much a clear pattern that is coming back and forth, this is also a strange phenomenon in my opinion. I need to research on this.
+
+### Outliers and its keygrams
+
+```{r}
+circshift <- function(v, n) {
+  if (n == 0) v else c(tail(v, n), head(v, -n))
+}
+major_key <-
+  c(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
+minor_key <-
+  c(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+key_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:maj", circshift(major_key, 6),
+    "Bb:min", circshift(minor_key, 10),
+    "Db:maj", circshift(major_key, 1),
+    "F:min", circshift(minor_key, 5),
+    "Ab:maj", circshift(major_key, 8),
+    "C:min", circshift(minor_key, 0),
+    "Eb:maj", circshift(major_key, 3),
+    "G:min", circshift(minor_key, 7),
+    "Bb:maj", circshift(major_key, 10),
+    "D:min", circshift(minor_key, 2),
+    "F:maj", circshift(major_key, 5),
+    "A:min", circshift(minor_key, 9),
+    "C:maj", circshift(major_key, 0),
+    "E:min", circshift(minor_key, 4),
+    "G:maj", circshift(major_key, 7),
+    "B:min", circshift(minor_key, 11),
+    "D:maj", circshift(major_key, 2),
+    "F#:min", circshift(minor_key, 6),
+    "A:maj", circshift(major_key, 9),
+    "C#:min", circshift(minor_key, 1),
+    "E:maj", circshift(major_key, 4),
+    "G#:min", circshift(minor_key, 8),
+    "B:maj", circshift(major_key, 11),
+    "D#:min", circshift(minor_key, 3)
+  )
+```
+
+```{r}
+dolly <- get_tidy_audio_analysis("77bNe6jYY8yHdP7orXrz5I") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "acentre", norm = "manhattan"
+      )
+  ) |>
+  compmus_match_pitch_template(key_templates, "aitchison", "manhattan") |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(option = "E", guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "", fill = "Distance", title="I Will Always Love You")
+
+keshi <- get_tidy_audio_analysis("5byXSKd7QOHtVMOiptklBD") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "acentre", norm = "manhattan"
+      )
+  ) |>
+  compmus_match_pitch_template(key_templates, "aitchison", "manhattan") |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(option = "E", guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "", fill = "Distance", title = "i swear i'll never leave again")
+
+plot_grid(dolly, keshi, labels = "AUTO")
+```
+
+------------------------------------------------------------------------
+
+In my brother's playlist there are also western songs such as "I Will Always Love You" by Dolly Parton. In this section I will focus on this song by making a chordgram. The song is in D major but the plot shows otherwise. It depicts keys above D major. So this is strange.
+
+Another example is "i swear i'll never leave again" by Keshi. The song is A major but it also fails to detect that. It shows Eb major is the most prevalent.
+
+In both cases, it failed to highlight the correct chords. It highlights somewhere close but it is not accurate. (I need some explanation why this is the case in the future)
+
+### Track-Level Summaries
+
+```{r}
+
+```
+
+------------------------------------------------------------------------
+
+WIP, I am getting this error that I cannot fix.
 
 # End point {.storyboard data-icon="ion-music-note"}
 
 ### What did I find?
+
 Through our analysis of my brother's playlist and the Top 50 playlists from Japan and South Korea, we've discovered some interesting differences in the musical features that are commonly associated with romantic music.
 
 We found that the Top 50 playlists from both countries generally exhibited a similar distribution of tempo and valence scores, reflecting similarities in pop music trends. However, the playlists diverged in other areas: the Top 50 playlist from Japan featured a higher concentration of songs in the G key and a wider range of song lengths, while the Top 50 playlist from South Korea had many songs in C and C# keys and tended to peak at 3 minutes in length.
@@ -199,6 +413,7 @@ Based on our analysis, we observed that South Korean music appears to more close
 Overall, these findings offer insights into the cultural differences in romantic music between Japan and South Korea, and may be useful for those interested in exploring these themes further or curating playlists in this genre. However, it's important to note that our conclusions are based on a relatively small sample size, and further analysis would be needed to confirm these trends.
 
 ### Future Improvements
-- Find better playlists. The results were much better when I picked romantic song playlists of South Korea and Japan instead of top 50. The problem is that they were not curated/created by Spotify.
 
-- Use/explore more features and maybe I can calculate similarities using KNN?
+-   Find better playlists. The results were much better when I picked romantic song playlists of South Korea and Japan instead of top 50. The problem is that they were not curated/created by Spotify.
+
+-   Use/explore more features and maybe I can calculate similarities using KNN?
