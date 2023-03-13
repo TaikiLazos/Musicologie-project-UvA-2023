@@ -74,9 +74,9 @@ Explain in academical term what we consider as our target songs.
 
 ```{r, include=FALSE}
 # Loading spotify playlists
-leo_playlist <- get_playlist_audio_features("", "5ASx85eUYUG7QmYpiJVI4p")
-japan_playlist <- get_playlist_audio_features("", "37i9dQZEVXbKXQ4mDTEBXq")
-korea_playlist <- get_playlist_audio_features("", "37i9dQZEVXbNxXF4SkHj9F")
+leo_playlist <- get_playlist_audio_features("", "5ASx85eUYUG7QmYpiJVI4p") |> add_audio_analysis()
+japan_playlist <- get_playlist_audio_features("", "37i9dQZEVXbKXQ4mDTEBXq") |> add_audio_analysis()
+korea_playlist <- get_playlist_audio_features("", "37i9dQZEVXbNxXF4SkHj9F") |> add_audio_analysis()
 
 # Rename the playlists for my convenience
 leo_playlist$playlist_name <- "My Brother's playlist" 
@@ -88,6 +88,41 @@ temp = rbind(leo_playlist, japan_playlist)
 songs = rbind(temp, korea_playlist)
 # shows the dimension of the whole dataset
 # dim(songs) # output: 247x61
+
+corpus <-
+  bind_rows(
+    leo_playlist |> mutate(genre = "Brother"),
+    japan_playlist |> mutate(genre = "Japan"),
+    korea_playlist |> mutate(genre = "Korea")
+  )
+
+leo_stats <- leo_playlist |> 
+  summarise(
+    mean_valence = mean(leo_playlist$valence),
+    mean_energy = mean(leo_playlist$energy),
+    mean_dance = mean(leo_playlist$danceability),
+    mean_tempo = mean(leo_playlist$tempo)
+    )
+japan_stats <- japan_playlist |> 
+  summarise(
+    mean_valence = mean(japan_playlist$valence),
+    mean_energy = mean(japan_playlist$energy),
+    mean_dance = mean(japan_playlist$danceability),
+    mean_tempo = mean(japan_playlist$tempo)
+    )
+korea_stats <- korea_playlist |> 
+  summarise(
+    mean_valence = mean(korea_playlist$valence),
+    mean_energy = mean(korea_playlist$energy),
+    mean_dance = mean(korea_playlist$danceability),
+    mean_tempo = mean(korea_playlist$tempo)
+    )
+corp_stats <-
+  bind_rows(
+    leo_stats |> mutate(genre = "Brother"),
+    japan_stats |> mutate(genre = "Japan"),
+    korea_stats |> mutate(genre = "Korea")
+)
 ```
 
 # Visual analysis of my corpus {.storyboard data-icon="fa-signal"}
@@ -393,12 +428,43 @@ In both cases, it failed to highlight the correct chords. It highlights somewher
 ### Track-Level Summaries
 
 ```{r}
-
+plt_3 <- corpus |>
+  mutate(
+    popularity = track.popularity,
+    name = track.name,
+    sections =
+      map(
+        sections,                                    # sections or segments
+        summarise_at,
+        vars(tempo, duration),             # features of interest
+        list(section_mean = mean, section_sd = sd)   # aggregation functions
+      )
+  ) |>
+  unnest(sections) |>
+  ggplot(
+    aes(
+      name = name,
+      x = tempo,
+      y = tempo_section_sd,
+      colour = genre
+    )
+  ) +
+  geom_point(aes(size = duration / 60)) +
+  geom_rug() +
+  theme_minimal() +
+  ylim(0, 5) +
+  labs(
+    x = "Mean Tempo (bpm)",
+    y = "SD Tempo",
+    colour = "Genre",
+    size = "Duration (min)"
+  )
+ggplotly(p=plt_3)
 ```
 
 ------------------------------------------------------------------------
 
-WIP, I am getting this error that I cannot fix.
+Overall I can see that my brother's playlist has higher SD tempo value than the other two playlists. But this is probably due to the fact that my brother's playlist is smaller than the the other two.
 
 # End point {.storyboard data-icon="ion-music-note"}
 
