@@ -46,9 +46,9 @@ Ultimately, our goal is to uncover any patterns or trends in the playlist that m
 knitr::include_graphics("pics/intro_photo.png")
 ```
 
-### Corpus Description
+###  Description
 
-<font size="6"> About My Corpus</font>
+<font size="6"> About My </font>
 
 There are three playlists chosen for my project in order to answer my question.
 
@@ -66,14 +66,14 @@ Of course, romanticism is a subjective concept and there may be other factors be
 
 ------------------------------------------------------------------------
 
-<iframe src="https://open.spotify.com/playlist/5ASx85eUYUG7QmYpiJVI4p" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+<!-- <iframe src="https://open.spotify.com/playlist/5ASx85eUYUG7QmYpiJVI4p" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe> -->
 
 ### What makes a song romantic and sad?
 
 Explain in academical term what we consider as our target songs.
 
 ```{r, include=FALSE}
-# Loading spotify playlists
+ # Loading spotify playlists
 leo_playlist <- get_playlist_audio_features("", "5ASx85eUYUG7QmYpiJVI4p") |> add_audio_analysis()
 japan_playlist <- get_playlist_audio_features("", "37i9dQZEVXbKXQ4mDTEBXq") |> add_audio_analysis()
 korea_playlist <- get_playlist_audio_features("", "37i9dQZEVXbNxXF4SkHj9F") |> add_audio_analysis()
@@ -84,12 +84,7 @@ japan_playlist$playlist_name <- "Top 50 Japan"
 korea_playlist$playlist_name <- "Top 50 South Korea"
 
 # appending dataset into one
-temp = rbind(leo_playlist, japan_playlist)
-songs = rbind(temp, korea_playlist)
-# shows the dimension of the whole dataset
-# dim(songs) # output: 247x61
-
-corpus <-
+songs <-
   bind_rows(
     leo_playlist |> mutate(genre = "Brother"),
     japan_playlist |> mutate(genre = "Japan"),
@@ -117,7 +112,7 @@ korea_stats <- korea_playlist |>
     mean_dance = mean(korea_playlist$danceability),
     mean_tempo = mean(korea_playlist$tempo)
     )
-corp_stats <-
+song_stats <-
   bind_rows(
     leo_stats |> mutate(genre = "Brother"),
     japan_stats |> mutate(genre = "Japan"),
@@ -125,7 +120,7 @@ corp_stats <-
 )
 ```
 
-# Visual analysis of my corpus {.storyboard data-icon="fa-signal"}
+# Visual analysis of my  {.storyboard data-icon="fa-signal"}
 
 ### Song length in Bar plot
 
@@ -152,20 +147,6 @@ donut_df <- songs |> count(playlist_name, key_name, sort = TRUE)
 setDT(donut_df)[, frac := n / sum(n), by=playlist_name]
 tabulated <- donut_df[, .N, by = .(playlist_name, key_name, n)]
 
-# plot FOR DONUT CHART
-# ggplot(tabulated, aes(x=2, y=n, fill=key_name)) +
-#   geom_bar(position = 'fill', stat = 'identity')  +
-#   facet_grid(~ playlist_name) + 
-#   xlim(0.5, 2.5) +
-#   coord_polar(theta = 'y') + 
-#   labs(x=NULL, y=NULL) + theme(
-#     axis.title.x=element_blank(),
-#     axis.text.x=element_blank(),
-#     axis.ticks.x=element_blank(),
-#     axis.title.y=element_blank(),
-#     axis.text.y=element_blank(),
-#     axis.ticks.y=element_blank()
-#     ) + ggtitle("Distribution of keys in playlist represented in donut chart")
 
 # BARPLOT
 ggplot(donut_df, aes(x=key_name, y=n, fill=key_name)) +
@@ -428,7 +409,7 @@ In both cases, it failed to highlight the correct chords. It highlights somewher
 ### Track-Level Summaries
 
 ```{r}
-plt_3 <- corpus |>
+plt_3 <- songs |>
   mutate(
     popularity = track.popularity,
     name = track.name,
@@ -459,12 +440,43 @@ plt_3 <- corpus |>
     colour = "Genre",
     size = "Duration (min)"
   )
-ggplotly(p=plt_3)
+plt_3
 ```
 
 ------------------------------------------------------------------------
 
 Overall I can see that my brother's playlist has higher SD tempo value than the other two playlists. But this is probably due to the fact that my brother's playlist is smaller than the the other two.
+
+### Histogram of Tempi
+
+```{r}
+# Change histogram plot fill colors by groups, Use semi-transparent fill
+ggplot(songs, aes(x=tempo, fill=genre)) +
+  geom_histogram(position="identity", alpha=0.5) + facet_grid(~ genre)
+
+```
+
+---
+
+Here is a histogram of tempo of each playlists. As you can see, there is no clear similarities between these three playlists. Each playlist has different distribution in tempo. However, at just below 100 bpm both my brother's playlist and Top 50 Korea have a peak whereas Japan top 50 doesn't. This indicates that Brother's playlist is more similar to Korean than Japanese in terms of tempo.
+
+### Tempogram
+
+```{r}
+drake <- get_tidy_audio_analysis("2Gnsof1hvZzjE1xdLRpjtf")
+drake |> slice(1:00) |>
+  tempogram(window_size = 4, hop_size = 1, cyclic = FALSE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+
+```
+
+---
+
+Over My Dead Body by Drake has the highest tempo in my brother's playlist. Although listening to it the background instrumental is not particularly faster than other songs. However, it is suspected that rap is effecting the overall tempo of the song. I used windows size of 4 and hop size of 1 in this tempogram. We see that the bpm is mostly constant which aligns with how the song also goes. However, BPM of this song should be around 185. This is not correctly shown in the plot and I called this plot multiple times but it gave me the same result. 
 
 # End point {.storyboard data-icon="ion-music-note"}
 
