@@ -1,6 +1,8 @@
 # Musicologie-project-UvA-2023
 Welcome to my github repository where you can find my work during the course computational musicology at the Universiteit van Amsterdam. The course is given by Dr. Ashley Burgoyne.
 
+Link to my portfolio: [Brother's romantic side](https://taikilazos.github.io/Musicologie-project-UvA-2023/)
+
 ## Description about my corpus
 For this course we analyze a playlist of our personal Spotify account. I personally don't have a Spotify account and I did not want to analyze a generic playlist made by Spotify I decided to use my brother's playlist who has a great taste in music.
 
