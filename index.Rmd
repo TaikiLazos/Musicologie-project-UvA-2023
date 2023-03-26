@@ -24,6 +24,11 @@ library(plotly)
 library(compmus)
 library(cowplot)
 library(ggpubr)
+library(tidymodels)
+library(ggdendro)
+library(heatmaply)
+library(protoclust)
+library(kknn)
 ```
 
 # Beginning of the story {.storyboard data-icon="ion-ios-home"}
@@ -463,20 +468,79 @@ Here is a histogram of tempo of each playlists. As you can see, there is no clea
 ### Tempogram
 
 ```{r}
-drake <- get_tidy_audio_analysis("2Gnsof1hvZzjE1xdLRpjtf")
-drake |> slice(1:00) |>
-  tempogram(window_size = 4, hop_size = 1, cyclic = FALSE) |>
-  ggplot(aes(x = time, y = bpm, fill = power)) +
-  geom_raster() +
-  scale_fill_viridis_c(guide = "none") +
-  labs(x = "Time (s)", y = "Tempo (BPM)") +
-  theme_classic()
-
+# drake <- get_tidy_audio_analysis("2Gnsof1hvZzjE1xdLRpjtf")
+# drake |> slice(1:00) |>
+#   tempogram(window_size = 4, hop_size = 1, cyclic = FALSE) |>
+#   ggplot(aes(x = time, y = bpm, fill = power)) +
+#   geom_raster() +
+#   scale_fill_viridis_c(guide = "none") +
+#   labs(x = "Time (s)", y = "Tempo (BPM)") +
+#   theme_classic()
 ```
 
 ---
 
-Over My Dead Body by Drake has the highest tempo in my brother's playlist. Although listening to it the background instrumental is not particularly faster than other songs. However, it is suspected that rap is effecting the overall tempo of the song. I used windows size of 4 and hop size of 1 in this tempogram. We see that the bpm is mostly constant which aligns with how the song also goes. However, BPM of this song should be around 185. This is not correctly shown in the plot and I called this plot multiple times but it gave me the same result. 
+Over My Dead Body by Drake has the highest tempo in my brother's playlist. Although listening to it the background instrumental is not particularly faster than other songs. However, it is suspected that rap is effecting the overall tempo of the song. I used windows size of 4 and hop size of 1 in this tempogram. We see that the bpm is mostly constant which aligns with how the song also goes. However, BPM of this song should be around 185. This is not correctly shown in the plot and I called this plot multiple times but it gave me the same result. Compared to its self-similarity matrix curve you can see that both ...
+
+### Classification
+```{r halloween}
+pop <- get_playlist_audio_features("spotify", "5ASx85eUYUG7QmYpiJVI4p")
+party <- get_playlist_audio_features("spotify", "37i9dQZEVXbKXQ4mDTEBXq")
+workout <- get_playlist_audio_features("spotify", "37i9dQZEVXbNxXF4SkHj9F")
+indie <-
+  bind_rows(
+    pop |> mutate(playlist = "Brother"),
+    party |> mutate(playlist = "Japan"),
+    workout |> mutate(playlist = "Korea")
+  ) |> 
+  add_audio_analysis()
+indie_features <-
+  indie |>
+  mutate(playlist = factor(playlist)) |>
+  mutate(segments = map2(segments, key, compmus_c_transpose)) |>
+  mutate(
+    pitches =
+      map(
+        segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+indie_recipe <-
+  recipe(
+    playlist ~ acousticness + c02 + c04 + tempo + duration,
+    data = indie_features
+  ) |> 
+  step_center(all_predictors()) |>
+  step_scale(all_predictors())
+indie_cv <- indie_features |> vfold_cv(10)
+knn_model <-
+  nearest_neighbor(neighbors = 3) |>
+  set_mode("classification") |> 
+  set_engine("kknn")
+indie_knn <-
+  workflow() |> 
+  add_recipe(indie_recipe) |> 
+  add_model(knn_model) |> 
+  fit_resamples(indie_cv, control = control_resamples(save_pred = TRUE))
+indie_knn |>
+  collect_predictions() |> 
+  conf_mat(truth = playlist, estimate = .pred_class) |> 
+  autoplot(type = "mosaic")
+```
+
+---
+
+Here we see a classification matrix of my KNN classifier. This matrix represents the accurately predicted values. We see that the classifier predicts my brother's playlist well as it makes up the largest area. It does less so in other areas. I changed the k value to 3 and it had no significant effect. Overall the accuracy of this classifier is below average.
 
 # End point {.storyboard data-icon="ion-music-note"}
 
