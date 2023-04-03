@@ -53,7 +53,7 @@ knitr::include_graphics("pics/intro_photo.png")
 
 ###  Description
 
-<font size="6"> About My </font>
+<font size="6"> About My Corpus </font>
 
 There are three playlists chosen for my project in order to answer my question.
 
@@ -71,11 +71,18 @@ Of course, romanticism is a subjective concept and there may be other factors be
 
 ------------------------------------------------------------------------
 
-<!-- <iframe src="https://open.spotify.com/playlist/5ASx85eUYUG7QmYpiJVI4p" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe> -->
+<iframe src="https://open.spotify.com/playlist/5ASx85eUYUG7QmYpiJVI4p" height="380" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
 
 ### What makes a song romantic and sad?
 
-Explain in academical term what we consider as our target songs.
+So what makes a song romantic? There are many theories and studies done to find which song components create romantic feeling. It is also important to note that romantic feeling is subjective thus this is not a universal truth.
+
+In one study, researchers analyzed the use of pitch, tempo, and timbre in romantic and non-romantic pop songs. They found that romantic songs tended to use higher-pitched vocals, slower tempos, and more legato (smooth and connected) phrasing, which may help to convey emotional intensity and intimacy.
+
+Similarly, a psychology study shows effects of key and tempo on emotional responses to music. The researchers found that minor keys were more likely to evoke feelings of sadness and melancholy, while slower tempos were associated with a more relaxed and contemplative mood.
+
+Although these studies show relevance of some song features in romantic vibe it is important to note that lyrics of songs play a significant role as well. The semantics of lyrics will not be covered in this project but this is an interesting topic to research on in the future.
+
 
 ```{r, include=FALSE}
  # Loading spotify playlists
@@ -138,7 +145,7 @@ ggplot(songs, aes(track.duration_min)) + geom_histogram() + facet_wrap(~ playlis
 
 ------------------------------------------------------------------------
 
-Upon examining my brother's playlist and the Top 50 playlists from Japan and South Korea, I've noticed that there are some interesting differences in the duration of songs. Specifically, my brother's playlist consists mostly of songs around 4 minutes in length, while the Top 50 playlist from Japan has a peak at 3 minutes and a little over 4 minutes, and the Top 50 playlist from Korea peaks at 3 minutes.
+Upon examining my brother's playlist and the Top 50 playlists from Japan and South Korea, I've noticed that there are some interesting differences in the duration of songs. Specifically, my brother's playlist consists mostly of songs around 4 minutes in length, while the Top 50 playlist from Japan has a peak at 3 minutes and a little over 4 minutes, and the Top 50 playlist from Korea peaks at 4 minutes. This means that popular Korean songs are little bit longer than Japanese songs in general. From the perspective of duration we can say that brother's romantic playlist resemble more of Top 50 Korea than TOP 50 Japan.
 
 ### Keys of Songs
 
@@ -445,12 +452,14 @@ plt_3 <- songs |>
     colour = "Genre",
     size = "Duration (min)"
   )
-plt_3
+ggplotly(plt_3)
 ```
 
 ------------------------------------------------------------------------
 
-Overall I can see that my brother's playlist has higher SD tempo value than the other two playlists. But this is probably due to the fact that my brother's playlist is smaller than the the other two.
+Upon analyzing the tempo values of my brother's playlist in comparison to the other two playlists, it can be observed that his playlist has a higher standard deviation value. However, it is important to note that this could be due to the fact that his playlist is smaller in size than the other two. Additionally, despite being curated by a single person using specific criteria, my brother's playlist does not exhibit a discernible pattern. This observation raises questions about the suitability of his playlist as a corpus for analysis.
+
+Furthermore, it is noteworthy that my brother's playlist has a higher average tempo compared to the other two. This finding is unexpected, as romantic songs are typically associated with slower tempos. The discrepancy between the expected and observed tempo values highlights the subjective nature of romantic feelings and the challenges of analyzing subjective themes in computational musicology. 
 
 ### Histogram of Tempi
 
@@ -465,22 +474,24 @@ ggplot(songs, aes(x=tempo, fill=genre)) +
 
 Here is a histogram of tempo of each playlists. As you can see, there is no clear similarities between these three playlists. Each playlist has different distribution in tempo. However, at just below 100 bpm both my brother's playlist and Top 50 Korea have a peak whereas Japan top 50 doesn't. This indicates that Brother's playlist is more similar to Korean than Japanese in terms of tempo.
 
+Contrary to the last we can see that my brother's playlist has lower tempo than the other two playlists proving that my brother's playlist indeed has romantic range of tempo.
+
 ### Tempogram
 
 ```{r}
-# drake <- get_tidy_audio_analysis("2Gnsof1hvZzjE1xdLRpjtf")
-# drake |> slice(1:00) |>
-#   tempogram(window_size = 4, hop_size = 1, cyclic = FALSE) |>
-#   ggplot(aes(x = time, y = bpm, fill = power)) +
-#   geom_raster() +
-#   scale_fill_viridis_c(guide = "none") +
-#   labs(x = "Time (s)", y = "Tempo (BPM)") +
-#   theme_classic()
+drake <- get_tidy_audio_analysis("2Gnsof1hvZzjE1xdLRpjtf")
+drake |> slice(1:00) |>
+  tempogram(window_size = 4, hop_size = 1, cyclic = FALSE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
 ```
 
 ---
 
-Over My Dead Body by Drake has the highest tempo in my brother's playlist. Although listening to it the background instrumental is not particularly faster than other songs. However, it is suspected that rap is effecting the overall tempo of the song. I used windows size of 4 and hop size of 1 in this tempogram. We see that the bpm is mostly constant which aligns with how the song also goes. However, BPM of this song should be around 185. This is not correctly shown in the plot and I called this plot multiple times but it gave me the same result. Compared to its self-similarity matrix curve you can see that both ...
+Over My Dead Body by Drake has the highest tempo in my brother's playlist. Although listening to it the background instrumental is not particularly faster than other songs. However, it is suspected that rap is effecting the overall tempo of the song. I used windows size of 4 and hop size of 1 in this tempogram. We see that the bpm is mostly constant which aligns with how the song also goes. However, BPM of this song should be around 185. This is not correctly shown in the plot and I called this plot multiple times but it gave me the same result. 
 
 ### Classification
 ```{r halloween}
@@ -540,7 +551,9 @@ indie_knn |>
 
 ---
 
-Here we see a classification matrix of my KNN classifier. This matrix represents the accurately predicted values. We see that the classifier predicts my brother's playlist well as it makes up the largest area. It does less so in other areas. I changed the k value to 3 and it had no significant effect. Overall the accuracy of this classifier is below average.
+The matrix shows that the classifier performs well in predicting songs from the brother's playlist, as it comprises the largest area, but is comparatively less accurate in other areas. Despite changing the k value to 3, the accuracy of the classifier remained below average.
+
+The reason why the KNN classifier performs better for the brother's playlist than for the other two remains unclear. While assessing the key distribution of each playlist, it was assumed that the Top50 Korea playlist would classify best, as it had a unique key distribution compared to the other two playlists. However, it can be argued that since only the brother's playlist is curated under a specific theme, it contains songs that share similar features, making it easier for the KNN classifier to correctly identify them. In contrast, the Top50 Korea playlist may have uncharacteristic features that make it harder for the classifier to identify the songs accurately, ultimately impacting its performance.
 
 # End point {.storyboard data-icon="ion-music-note"}
 
@@ -553,9 +566,3 @@ We found that the Top 50 playlists from both countries generally exhibited a sim
 Based on our analysis, we observed that South Korean music appears to more closely resemble my brother's playlist than Japanese music. While this is a somewhat subjective conclusion, given that it is based on my brother's personal tastes and preferences, it suggests that Koreans may be more romantic than the Japanese in his estimation.
 
 Overall, these findings offer insights into the cultural differences in romantic music between Japan and South Korea, and may be useful for those interested in exploring these themes further or curating playlists in this genre. However, it's important to note that our conclusions are based on a relatively small sample size, and further analysis would be needed to confirm these trends.
-
-### Future Improvements
-
--   Find better playlists. The results were much better when I picked romantic song playlists of South Korea and Japan instead of top 50. The problem is that they were not curated/created by Spotify.
-
--   Use/explore more features and maybe I can calculate similarities using KNN?
